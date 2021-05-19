@@ -1,8 +1,19 @@
+# obfuscation_methods.py v0.2
+# Description:  Android Obfuscation Methods, Class Renaming and Inserting Junkcode
+# Changelog:    v0.1: Base Layout & Junkcode
+#               v0.2: Added Class Renaming
+
 import os
 import random
 import string
+import shutil 
 
-# === Utilities ===
+# === Utilities Section ===
+
+# smali_finder()
+# Description:  Find Smali files
+# Args: 	path 		> Folder directory
+# Returns: 	fileList	> Contains the directory of each of the smali file
 def smali_finder(path):
 	fileList = []
 	for rootDir, subDir, files in os.walk(path):
@@ -12,10 +23,16 @@ def smali_finder(path):
 					fileList.append(rootDir + "\\" + fileName)
 	return fileList
 
+# random_string()
+# Description:  Randomise the given input with upper and lower case letters within the range of 10
+# Returns: 	N.A.	> Random string
 def random_string():
 	letter = string.ascii_letters
 	return ''.join(random.choice(letter) for i in range(10))
 
+# get_op()
+# Description:  Get op code from a pre-defined text file
+# Returns: 	opList	> Contains the list of valid op codes
 def get_op():
 	opList = []
 	fileOpen = open("nop_valid_op_code.txt", "r")
@@ -26,6 +43,9 @@ def get_op():
 	fileOpen.close()
 	return opList
 
+# get_junk()
+# Description:  Insertion of 'nop' junk instructions
+# Returns: 	junk	> Contains the number of junk, line by line
 def get_junk():
 	junk = ""
 	count = random.randint(1, 2)
@@ -33,6 +53,10 @@ def get_junk():
 		junk = junk + "\tnop\n"
 	return junk
 
+# ofp_check()
+# Description:  Identify the key ofp Smali files to edit. This can cause certain obfuscation identifying application to malfunction due to the inconsistency of obfuscation added
+# Args: 	path 		> Folder directory
+# Returns: 	returnList	> Contains the list of ofp Smali files to edit
 def ofp_check(path):
 	fileList = []
 	fileList = smali_finder(path)
@@ -53,7 +77,13 @@ def ofp_check(path):
 			returnList.append(i)
 	return returnList
 
-# === Obfuscation Methods ===
+# === Obfuscation Methods Section ===
+
+# class_rename()
+# Description:  Implemented Obfuscation Method #1. This method is an upgrade of the typical class renaming obfuscation. Instead of editing only the class name within the code, this function will
+#				edit the filename of every single Smali file of the main working directory to a random ascii string. In additon, the Manifest file will be edited to ensure that it will not help the
+#				user in identify each of the classes' original intention.
+# Args: 	path 		> Folder directory
 def class_rename(path):
 	manifestPath = path + "\\AndroidManifest.xml"
 	path = path + "\\smali"
@@ -84,9 +114,7 @@ def class_rename(path):
 		fileOpen = open(fileName, "r")
 		fileStream = fileOpen.read()
 		for key, value in newClassnameDict.items():
-			#print(key, value)
 			fileStream = fileStream.replace(key, value)
-		#print("========================")
 		fileSave = open(fileName, "w")
 		fileSave.write(fileStream)
 		fileSave.close()
@@ -97,6 +125,11 @@ def class_rename(path):
 		newPath = currentPath + newFileName
 		os.rename(fileName, newPath)
 
+# insert_junk()
+# Description:  Implemented Obfuscation Method #2. This method is an upgrade of the typical junkcode obfuscation. Typical obfuscator adds junkcode to every single Smali file found such that it is very easy
+#				to be identified as obfuscated. To prevent this from happening, a small amount of commonly used Smali files will be inserted with junkcode instead. A small number means that it can disorient
+#				certain obfuscation identifying softwares from working as intended.
+# Args: 	path 		> Folder directory
 def insert_junk(path):
 	path = path + "\\smali"
 
@@ -135,6 +168,8 @@ def insert_junk(path):
 					fileSave.close()
 					fileOpen.close()
 
-# === Testing ===
-class_rename("D:\\School\\2207 - Mobile Security\\Project\\Assignment 2\\Working Folder\\app-release")
-insert_junk("D:\\School\\2207 - Mobile Security\\Project\\Assignment 2\\Working Folder\\app-release")
+# Run
+path = input("Enter path to Decompiled Folder: ")
+insert_junk(path)
+class_rename(path)
+print("Completed!")
