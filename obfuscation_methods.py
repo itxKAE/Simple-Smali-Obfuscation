@@ -170,6 +170,7 @@ def insert_junk(path):
 
 # Run
 path = input("Enter path to Decompiled Folder: ")
+path = "\"" + path + "\""
 insert_junk(path)
 class_rename(path)
 print("Completed!")
